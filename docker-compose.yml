@@ -1,0 +1,43 @@
+# ============================================================================
+# docker-compose.yml —— 群晖 NAS 部署编排（生产配置）
+# ----------------------------------------------------------------------------
+# 用途：在群晖 Container Manager 中创建项目「xiaomi-camera-merge」，
+#       从本目录源码构建镜像 xiaomi-camera-merge:local 并运行一次合并任务。
+#
+# 容器为【一次性任务】设计（restart: "no"）：
+#   运行完成即退出；定时自动运行由「控制面板 → 任务计划」中的
+#   xiaomi-camera-merge-task（每小时 docker run --rm）负责。
+#   因此平时无需常驻容器，避免内存/资源占用。
+#
+# 环境变量说明：
+#   TZ          时区，保证“当前小时”判断与归档路径正确（上海时区）
+#   DELETE_SUCCESS=true   合并成功后删除已合并的源文件（释放空间）
+#   MAX_MERGE=0           0 = 不限制，单次处理全部可合并分组
+#   VIDEO_EXT=mp4         待合并文件扩展名
+#   MIN_AGE_MIN=30        修改时间晚于 30 分钟前的文件不处理（防写入中）
+#   SKIP_CURRENT=true     跳过开始时间处于当前小时的文件（防写入中）
+#   GROUP_SIZE=10      每组合并的分段数量（v3.0，默认10）
+#   MIN_GROUP_SIZE=8   最后一组不足该数量则等待积攒（默认8）
+#
+# 挂载：
+#   /volume1/CCTV:/app/video   NAS 的 CCTV 共享文件夹（小米摄像头存储根目录）
+# ============================================================================
+services:
+  xiaomi-camera-merge:
+    build:
+      context: .            # 以本目录为构建上下文（含 Dockerfile、main.go、lib）
+      dockerfile: Dockerfile
+    image: xiaomi-camera-merge:local
+    container_name: xiaomi-camera-merge
+    restart: "no"           # 一次性任务：运行完退出，不自动重启
+    environment:
+      - TZ=Asia/Shanghai
+      - DELETE_SUCCESS=true
+      - MAX_MERGE=0
+      - VIDEO_EXT=mp4
+      - MIN_AGE_MIN=30
+      - SKIP_CURRENT=true
+      - GROUP_SIZE=10
+      - MIN_GROUP_SIZE=8
+    volumes:
+      - /volume1/CCTV:/app/video

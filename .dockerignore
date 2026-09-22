@@ -1,0 +1,17 @@
+# ============================================================
+# .dockerignore —— Docker 构建上下文排除清单
+# 作用：构建镜像时，以下文件/目录不会被打包进构建上下文，
+#       加快构建速度并避免无关文件进入镜像层。
+# ============================================================
+.git            # git 历史
+.gitignore      # git 忽略配置
+doc             # 文档目录（不参与构建）
+test_videos     # 本地测试视频（体积大，绝不能进镜像）
+*.md            # 所有 Markdown 文档
+*.bat           # Windows 批处理脚本
+*.exe           # 本地 Windows 可执行文件（编译产物）
+xiaomi_camera_merge            # 本地编译产物
+xiaomi_camera_merge_arm64      # 交叉编译产物
+xiaomi_camera_merge_amd64      # 交叉编译产物
+docker-compose.yml             # 部署编排文件（由运行环境提供）
+synology-*                     # 群晖脚本
